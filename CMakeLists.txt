@@ -3,6 +3,7 @@ project(unitree_sdk2 VERSION 2.0.0)
 
 ## Project Options
 option(BUILD_EXAMPLES "Build examples" ON)
+option(USE_PREBUILT_UNITREE_SDK "Use prebuilt libunitree_sdk2.a" ON)
 
 ## Set compiler to use c++ 17 features
 set(CMAKE_CXX_STANDARD 17)
@@ -34,27 +35,55 @@ message(STATUS "Current system architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 ## Import thirdparty libraries
 add_subdirectory(thirdparty)
 
-## Import Unitree SDK2 library
-set(UNITREE_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_SYSTEM_PROCESSOR})
-find_library(UNITREE_SDK_LIB unitree_sdk2 PATHS ${UNITREE_SDK_PATH} NO_DEFAULT_PATH)
-
-if (NOT UNITREE_SDK_LIB)
-    message(FATAL_ERROR "Unitree SDK library for the architecture is not found")
-else ()
-    message(STATUS "Unitree SDK library found at: ${UNITREE_SDK_LIB}")
-endif ()
-
-message(STATUS "Importing: ${UNITREE_SDK_LIB}")
-
 find_package(Threads REQUIRED)
 
-add_library(unitree_sdk2 STATIC IMPORTED GLOBAL)
-set_target_properties(unitree_sdk2 PROPERTIES
-        IMPORTED_LOCATION ${UNITREE_SDK_LIB})
-target_link_libraries(unitree_sdk2 INTERFACE ddsc ddscxx Threads::Threads)
-target_include_directories(unitree_sdk2 INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>)
+if (USE_PREBUILT_UNITREE_SDK)
+    ## Import Unitree SDK2 library
+    set(UNITREE_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_SYSTEM_PROCESSOR})
+    find_library(UNITREE_SDK_LIB unitree_sdk2 PATHS ${UNITREE_SDK_PATH} NO_DEFAULT_PATH)
+
+    if (NOT UNITREE_SDK_LIB)
+        message(FATAL_ERROR "Unitree SDK library for the architecture is not found")
+    else ()
+        message(STATUS "Unitree SDK library found at: ${UNITREE_SDK_LIB}")
+    endif ()
+
+    message(STATUS "Importing: ${UNITREE_SDK_LIB}")
+
+    add_library(unitree_sdk2 STATIC IMPORTED GLOBAL)
+    set_target_properties(unitree_sdk2 PROPERTIES
+            IMPORTED_LOCATION ${UNITREE_SDK_LIB})
+    target_link_libraries(unitree_sdk2 INTERFACE ddsc ddscxx Threads::Threads)
+    target_include_directories(unitree_sdk2 INTERFACE
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:include>)
+else ()
+    message(STATUS "Building unitree_sdk2 from source (without prebuilt libunitree_sdk2.a)")
+
+    if (BUILD_EXAMPLES)
+        message(WARNING "Examples depend on modules not included in source mode. BUILD_EXAMPLES will be disabled.")
+        set(BUILD_EXAMPLES OFF)
+    endif ()
+
+    set(UNITREE_SDK2_SRC
+        src/unitree/common/dds/dds_callback.cpp
+        src/unitree/common/dds/dds_qos_policy.cpp
+        src/unitree/common/dds/dds_qos.cpp
+        src/unitree/common/dds/dds_qos_policy_parameter.cpp
+        src/unitree/common/dds/dds_qos_parameter.cpp
+        src/unitree/common/dds/dds_qos_realize.cpp
+        src/unitree/common/dds/dds_parameter.cpp
+        src/unitree/common/dds/dds_entity.cpp
+        src/unitree/common/dds/dds_factory_model.cpp
+        src/unitree/common/dds/dds_easy_model.cpp
+    )
+
+    add_library(unitree_sdk2 STATIC ${UNITREE_SDK2_SRC})
+    target_link_libraries(unitree_sdk2 PUBLIC ddsc ddscxx Threads::Threads)
+    target_include_directories(unitree_sdk2 PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:include>)
+endif ()
 
 if (BUILD_EXAMPLES)
     add_subdirectory(example)
@@ -64,8 +93,13 @@ endif ()
 install(DIRECTORY include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-install(FILES ${UNITREE_SDK_LIB}
-    DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if (USE_PREBUILT_UNITREE_SDK)
+    install(FILES ${UNITREE_SDK_LIB}
+        DESTINATION ${CMAKE_INSTALL_LIBDIR})
+else ()
+    install(TARGETS unitree_sdk2
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif ()
 
 install(FILES cmake/unitree_sdk2Targets.cmake
     DESTINATION lib/cmake/unitree_sdk2)
