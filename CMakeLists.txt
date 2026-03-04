@@ -3,7 +3,6 @@ project(pndbotics_sdk VERSION 2.0.0)
 
 ## Project Options
 option(BUILD_EXAMPLES "Build examples" ON)
-option(USE_PREBUILT_pndbotics_SDK "Use prebuilt libpndbotics_sdk.a" ON)
 
 ## Set compiler to use c++ 17 features
 set(CMAKE_CXX_STANDARD 17)
@@ -35,67 +34,27 @@ message(STATUS "Current system architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 ## Import thirdparty libraries
 add_subdirectory(thirdparty)
 
+## Import PNDbotics SDK2 library
+set(PNDBOTICS_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_SYSTEM_PROCESSOR})
+find_library(PNDBOTICS_SDK_LIB pndbotics_sdk PATHS ${PNDBOTICS_SDK_PATH} NO_DEFAULT_PATH)
+
+if (NOT PNDBOTICS_SDK_LIB)
+    message(FATAL_ERROR "PNDbotics SDK library for the architecture is not found")
+else ()
+    message(STATUS "PNDbotics SDK library found at: ${PNDBOTICS_SDK_LIB}")
+endif ()
+
+message(STATUS "Importing: ${PNDBOTICS_SDK_LIB}")
+
 find_package(Threads REQUIRED)
 
-if (USE_PREBUILT_pndbotics_SDK)
-    ## Import pndbotics SDK2 library
-    set(pndbotics_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_SYSTEM_PROCESSOR})
-    find_library(pndbotics_SDK_LIB pndbotics_sdk PATHS ${pndbotics_SDK_PATH} NO_DEFAULT_PATH)
-
-    if (NOT pndbotics_SDK_LIB)
-        message(FATAL_ERROR "pndbotics SDK library for the architecture is not found")
-    else ()
-        message(STATUS "pndbotics SDK library found at: ${pndbotics_SDK_LIB}")
-    endif ()
-
-    message(STATUS "Importing: ${pndbotics_SDK_LIB}")
-
-    add_library(pndbotics_sdk STATIC IMPORTED GLOBAL)
-    set_target_properties(pndbotics_sdk PROPERTIES
-            IMPORTED_LOCATION ${pndbotics_SDK_LIB})
-    target_link_libraries(pndbotics_sdk INTERFACE ddsc ddscxx Threads::Threads)
-    target_include_directories(pndbotics_sdk INTERFACE
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:include>)
-else ()
-    message(STATUS "Building pndbotics_sdk from source (without prebuilt libpndbotics_sdk.a)")
-
-    set(pndbotics_sdk_SRC
-        src/pndbotics/common/lock/lock.cpp
-        src/pndbotics/common/os.cpp
-        src/pndbotics/common/thread/future.cpp
-        src/pndbotics/common/thread/thread.cpp
-        src/pndbotics/common/thread/recurrent_thread.cpp
-        src/pndbotics/common/time/sleep.cpp
-        src/pndbotics/common/time/time_tool.cpp
-        src/pndbotics/common/dds/dds_callback.cpp
-        src/pndbotics/common/dds/dds_qos_policy.cpp
-        src/pndbotics/common/dds/dds_qos.cpp
-        src/pndbotics/common/dds/dds_qos_policy_parameter.cpp
-        src/pndbotics/common/dds/dds_qos_parameter.cpp
-        src/pndbotics/common/dds/dds_qos_realize.cpp
-        src/pndbotics/common/dds/dds_parameter.cpp
-        src/pndbotics/common/dds/dds_entity.cpp
-        src/pndbotics/common/dds/dds_factory_model.cpp
-        src/pndbotics/common/dds/dds_easy_model.cpp
-        src/pndbotics/robot/channel/channel_factory.cpp
-        example/lite/src_idl/HandCmd_.cpp
-        example/lite/src_idl/HandState_.cpp
-        example/lite/src_idl/IMUState_.cpp
-        example/lite/src_idl/LowCmd_.cpp
-        example/lite/src_idl/LowState_.cpp
-        example/lite/src_idl/MotorCmd_.cpp
-        example/lite/src_idl/MotorState_.cpp
-    )
-
-    add_library(pndbotics_sdk STATIC ${pndbotics_sdk_SRC})
-    target_link_libraries(pndbotics_sdk PUBLIC ddsc ddscxx Threads::Threads)
-    target_include_directories(pndbotics_sdk PUBLIC
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:include>)
-    target_include_directories(pndbotics_sdk PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/include/pndbotics/idl/pnd_adam)
-endif ()
+add_library(pndbotics_sdk STATIC IMPORTED GLOBAL)
+set_target_properties(pndbotics_sdk PROPERTIES
+        IMPORTED_LOCATION ${PNDBOTICS_SDK_LIB})
+target_link_libraries(pndbotics_sdk INTERFACE ddsc ddscxx Threads::Threads)
+target_include_directories(pndbotics_sdk INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>)
 
 if (BUILD_EXAMPLES)
     add_subdirectory(example)
@@ -105,13 +64,8 @@ endif ()
 install(DIRECTORY include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-if (USE_PREBUILT_pndbotics_SDK)
-    install(FILES ${pndbotics_SDK_LIB}
-        DESTINATION ${CMAKE_INSTALL_LIBDIR})
-else ()
-    install(TARGETS pndbotics_sdk
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endif ()
+install(FILES ${PNDBOTICS_SDK_LIB}
+    DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 install(FILES cmake/pndbotics_sdkTargets.cmake
     DESTINATION lib/cmake/pndbotics_sdk)
