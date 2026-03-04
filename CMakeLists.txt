@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
-project(unitree_sdk2 VERSION 2.0.0)
+project(pndbotics_sdk2 VERSION 2.0.0)
 
 ## Project Options
 option(BUILD_EXAMPLES "Build examples" ON)
-option(USE_PREBUILT_UNITREE_SDK "Use prebuilt libunitree_sdk2.a" ON)
+option(USE_PREBUILT_pndbotics_SDK "Use prebuilt libpndbotics_sdk2.a" ON)
 
 ## Set compiler to use c++ 17 features
 set(CMAKE_CXX_STANDARD 17)
@@ -37,50 +37,53 @@ add_subdirectory(thirdparty)
 
 find_package(Threads REQUIRED)
 
-if (USE_PREBUILT_UNITREE_SDK)
-    ## Import Unitree SDK2 library
-    set(UNITREE_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_SYSTEM_PROCESSOR})
-    find_library(UNITREE_SDK_LIB unitree_sdk2 PATHS ${UNITREE_SDK_PATH} NO_DEFAULT_PATH)
+if (USE_PREBUILT_pndbotics_SDK)
+    ## Import pndbotics SDK2 library
+    set(pndbotics_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_SYSTEM_PROCESSOR})
+    find_library(pndbotics_SDK_LIB pndbotics_sdk2 PATHS ${pndbotics_SDK_PATH} NO_DEFAULT_PATH)
 
-    if (NOT UNITREE_SDK_LIB)
-        message(FATAL_ERROR "Unitree SDK library for the architecture is not found")
+    if (NOT pndbotics_SDK_LIB)
+        message(FATAL_ERROR "pndbotics SDK library for the architecture is not found")
     else ()
-        message(STATUS "Unitree SDK library found at: ${UNITREE_SDK_LIB}")
+        message(STATUS "pndbotics SDK library found at: ${pndbotics_SDK_LIB}")
     endif ()
 
-    message(STATUS "Importing: ${UNITREE_SDK_LIB}")
+    message(STATUS "Importing: ${pndbotics_SDK_LIB}")
 
-    add_library(unitree_sdk2 STATIC IMPORTED GLOBAL)
-    set_target_properties(unitree_sdk2 PROPERTIES
-            IMPORTED_LOCATION ${UNITREE_SDK_LIB})
-    target_link_libraries(unitree_sdk2 INTERFACE ddsc ddscxx Threads::Threads)
-    target_include_directories(unitree_sdk2 INTERFACE
+    add_library(pndbotics_sdk2 STATIC IMPORTED GLOBAL)
+    set_target_properties(pndbotics_sdk2 PROPERTIES
+            IMPORTED_LOCATION ${pndbotics_SDK_LIB})
+    target_link_libraries(pndbotics_sdk2 INTERFACE ddsc ddscxx Threads::Threads)
+    target_include_directories(pndbotics_sdk2 INTERFACE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>)
 else ()
-    message(STATUS "Building unitree_sdk2 from source (without prebuilt libunitree_sdk2.a)")
+    message(STATUS "Building pndbotics_sdk2 from source (without prebuilt libpndbotics_sdk2.a)")
 
-    if (BUILD_EXAMPLES)
-        message(WARNING "Examples depend on modules not included in source mode. BUILD_EXAMPLES will be disabled.")
-        set(BUILD_EXAMPLES OFF)
-    endif ()
-
-    set(UNITREE_SDK2_SRC
-        src/unitree/common/dds/dds_callback.cpp
-        src/unitree/common/dds/dds_qos_policy.cpp
-        src/unitree/common/dds/dds_qos.cpp
-        src/unitree/common/dds/dds_qos_policy_parameter.cpp
-        src/unitree/common/dds/dds_qos_parameter.cpp
-        src/unitree/common/dds/dds_qos_realize.cpp
-        src/unitree/common/dds/dds_parameter.cpp
-        src/unitree/common/dds/dds_entity.cpp
-        src/unitree/common/dds/dds_factory_model.cpp
-        src/unitree/common/dds/dds_easy_model.cpp
+    set(pndbotics_SDK2_SRC
+        src/pndbotics/common/lock/lock.cpp
+        src/pndbotics/common/os.cpp
+        src/pndbotics/common/thread/future.cpp
+        src/pndbotics/common/thread/thread.cpp
+        src/pndbotics/common/thread/recurrent_thread.cpp
+        src/pndbotics/common/time/sleep.cpp
+        src/pndbotics/common/time/time_tool.cpp
+        src/pndbotics/common/dds/dds_callback.cpp
+        src/pndbotics/common/dds/dds_qos_policy.cpp
+        src/pndbotics/common/dds/dds_qos.cpp
+        src/pndbotics/common/dds/dds_qos_policy_parameter.cpp
+        src/pndbotics/common/dds/dds_qos_parameter.cpp
+        src/pndbotics/common/dds/dds_qos_realize.cpp
+        src/pndbotics/common/dds/dds_parameter.cpp
+        src/pndbotics/common/dds/dds_entity.cpp
+        src/pndbotics/common/dds/dds_factory_model.cpp
+        src/pndbotics/common/dds/dds_easy_model.cpp
+        src/pndbotics/robot/channel/channel_factory.cpp
     )
 
-    add_library(unitree_sdk2 STATIC ${UNITREE_SDK2_SRC})
-    target_link_libraries(unitree_sdk2 PUBLIC ddsc ddscxx Threads::Threads)
-    target_include_directories(unitree_sdk2 PUBLIC
+    add_library(pndbotics_sdk2 STATIC ${pndbotics_SDK2_SRC})
+    target_link_libraries(pndbotics_sdk2 PUBLIC ddsc ddscxx Threads::Threads)
+    target_include_directories(pndbotics_sdk2 PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>)
 endif ()
@@ -93,24 +96,24 @@ endif ()
 install(DIRECTORY include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-if (USE_PREBUILT_UNITREE_SDK)
-    install(FILES ${UNITREE_SDK_LIB}
+if (USE_PREBUILT_pndbotics_SDK)
+    install(FILES ${pndbotics_SDK_LIB}
         DESTINATION ${CMAKE_INSTALL_LIBDIR})
 else ()
-    install(TARGETS unitree_sdk2
+    install(TARGETS pndbotics_sdk2
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif ()
 
-install(FILES cmake/unitree_sdk2Targets.cmake
-    DESTINATION lib/cmake/unitree_sdk2)
+install(FILES cmake/pndbotics_sdk2Targets.cmake
+    DESTINATION lib/cmake/pndbotics_sdk2)
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    unitree_sdk2ConfigVersion.cmake
+    pndbotics_sdk2ConfigVersion.cmake
     VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}"
     COMPATIBILITY ExactVersion)
 
-configure_file(cmake/unitree_sdk2Config.cmake.in unitree_sdk2Config.cmake @ONLY)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/unitree_sdk2Config.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/unitree_sdk2ConfigVersion.cmake"
-    DESTINATION lib/cmake/unitree_sdk2)
+configure_file(cmake/pndbotics_sdk2Config.cmake.in pndbotics_sdk2Config.cmake @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pndbotics_sdk2Config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/pndbotics_sdk2ConfigVersion.cmake"
+    DESTINATION lib/cmake/pndbotics_sdk2)

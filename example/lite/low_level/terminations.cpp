@@ -1,16 +1,16 @@
-#include <unitree/robot/g1/common/terminations.hpp>
+#include <pndbotics/robot/g1/common/terminations.hpp>
 #include <boost/program_options.hpp>
 #include <thread>
 
 namespace po = boost::program_options;
 
-using namespace unitree::robot;
-using namespace unitree_hg::msg::dds_;
+using namespace pndbotics::robot;
+using namespace pndbotics_hg::msg::dds_;
 
 int main(int argc, char** argv)
 {
     // Parse command line arguments
-    po::options_description desc("Unitree G1 termination functions testing.");
+    po::options_description desc("pndbotics G1 termination functions testing.");
     desc.add_options()
         ("network,n", po::value<std::string>()->default_value(""), "dds network interface")
     ;

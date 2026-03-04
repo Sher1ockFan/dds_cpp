@@ -6,20 +6,19 @@
 #include "gamepad.hpp"
 
 // DDS
-#include <unitree/robot/channel/channel_publisher.hpp>
-#include <unitree/robot/channel/channel_subscriber.hpp>
+#include <pndbotics/robot/channel/channel_publisher.hpp>
+#include <pndbotics/robot/channel/channel_subscriber.hpp>
 
 // IDL
-#include <unitree/idl/pnd_adam/IMUState_.hpp>
-#include <unitree/idl/pnd_adam/LowCmd_.hpp>
-#include <unitree/idl/pnd_adam/LowState_.hpp>
-#include <unitree/robot/b2/motion_switcher/motion_switcher_client.hpp>
+#include <pndbotics/idl/pnd_adam/IMUState_.hpp>
+#include <pndbotics/idl/pnd_adam/LowCmd_.hpp>
+#include <pndbotics/idl/pnd_adam/LowState_.hpp>
 
 static const std::string ADAMCMD_TOPIC = "rt/lowcmd";
 static const std::string ADAMSTATE_TOPIC = "rt/lowstate";
 
-using namespace unitree::common;
-using namespace unitree::robot;
+using namespace pndbotics::common;
+using namespace pndbotics::robot;
 using namespace pnd_adam::msg::dds_;
 
 template <typename T>
@@ -66,12 +65,12 @@ struct MotorState {
 std::array<float, LITE_NUM_MOTOR> Kp{
     305.0, 700.0, 405.0, //  hip left
     305.0, 20, 0, // knee and ankle
-    
+
     305.0, 700.0, 405.0, //  hip right
     305.0, 20, 0, // knee and ankle
-    
+
     405.0, 405.0, 205.0, //  waist
-    
+
     18.0, 9.0, 9.0, //  shoulder left
     9.0,  //  arms
 
@@ -83,17 +82,17 @@ std::array<float, LITE_NUM_MOTOR> Kp{
 std::array<float, LITE_NUM_MOTOR> Kd{
     6.1, 30.0, 6.1,
     6.1, 2.5, 0.35,
-    
+
     6.1, 30.0, 6.1,
     6.1, 2.5, 0.35,    //  legs
-    
+
     4.1, 6.1, 6.1,             //  waist
-    
+
     0.9, 0.9, 0.9,
     0.9,  //  arms
-    
-    0.9, 0.9, 0.9, 
-    0.9 //  arms 
+
+    0.9, 0.9, 0.9,
+    0.9 //  arms
 };
 
 enum class Mode {
@@ -119,10 +118,10 @@ enum LITEJointIndex {
   RightAnkleRoll = 11,
   RightAnkleA = 11,
   WaistYaw = 12,
-  WaistRoll = 13,        
-  WaistA = 13,           
-  WaistPitch = 14,       
-  WaistB = 14,           
+  WaistRoll = 13,
+  WaistA = 13,
+  WaistPitch = 14,
+  WaistB = 14,
   LeftShoulderPitch = 15,
   LeftShoulderRoll = 16,
   LeftShoulderYaw = 17,
@@ -154,8 +153,6 @@ class LITEExample {
   ChannelSubscriberPtr<IMUState_> imutorso_subscriber_;
   ThreadPtr command_writer_ptr_, control_thread_ptr_;
 
-  std::shared_ptr<unitree::robot::b2::MotionSwitcherClient> msc_;
-
  public:
   LITEExample(std::string networkInterface)
       : time_(0.0),
@@ -166,19 +163,8 @@ class LITEExample {
         mode_machine_(0) {
     ChannelFactory::Instance()->Init(1, networkInterface);
 
-    // try to shutdown motion control-related service
-    msc_ = std::make_shared<unitree::robot::b2::MotionSwitcherClient>();
-    msc_->SetTimeout(5.0f);
-    msc_->Init();
-    std::string form, name;
-    while (msc_->CheckMode(form, name), !name.empty()) {
-      if (msc_->ReleaseMode())
-        std::cout << "Failed to switch to Release Mode\n";
-      sleep(5);
-    }
-
     // create publisher
-    // LowCmd_ low_cmd = LowCmd_(0, std::vector<MotorCmd_>(LITE_NUM_MOTOR), 0); 
+    // LowCmd_ low_cmd = LowCmd_(0, std::vector<MotorCmd_>(LITE_NUM_MOTOR), 0);
     lowcmd_publisher_.reset(new ChannelPublisher<LowCmd_>(ADAMCMD_TOPIC));
     lowcmd_publisher_->InitChannel();
     // create subscriber
@@ -187,8 +173,8 @@ class LITEExample {
     lowstate_subscriber_->InitChannel(std::bind(&LITEExample::LowStateHandler, this, std::placeholders::_1), 1);
 
     // create threads
-    command_writer_ptr_ = CreateRecurrentThreadEx("command_writer", UT_CPU_ID_NONE, 2000, &LITEExample::LowCommandWriter, this);
-    control_thread_ptr_ = CreateRecurrentThreadEx("control", UT_CPU_ID_NONE, 2000, &LITEExample::Control, this);
+    command_writer_ptr_ = CreateRecurrentThreadEx("command_writer", PND_CPU_ID_NONE, 2000, &LITEExample::LowCommandWriter, this);
+    control_thread_ptr_ = CreateRecurrentThreadEx("control", PND_CPU_ID_NONE, 2000, &LITEExample::Control, this);
   }
 
   void LowStateHandler(const void *message) {

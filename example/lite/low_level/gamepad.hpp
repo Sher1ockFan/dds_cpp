@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-namespace unitree::common
+namespace pndbotics::common
 {
 
     // bytecode mapping for raw joystick data
@@ -125,4 +125,4 @@ namespace unitree::common
         Button down;
         Button left;
     };
-} // namespace unitree::common
+} // namespace pndbotics::common
