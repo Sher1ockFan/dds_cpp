@@ -11,7 +11,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set(_targetsDefined)
 set(_targetsNotDefined)
 set(_expectedTargets)
-foreach(_expectedTarget pndbotics_sdk2)
+foreach(_expectedTarget pndbotics_sdk)
   list(APPEND _expectedTargets ${_expectedTarget})
   if(NOT TARGET ${_expectedTarget})
     list(APPEND _targetsNotDefined ${_expectedTarget})
@@ -60,10 +60,10 @@ set_target_properties(ddscxx PROPERTIES
     INTERFACE_LINK_LIBRARIES "Threads::Threads"
     IMPORTED_NO_SONAME TRUE)
 
-# Create imported target pndbotics_sdk2
-add_library(pndbotics_sdk2 STATIC IMPORTED GLOBAL)
-set_target_properties(pndbotics_sdk2 PROPERTIES
-    IMPORTED_LOCATION ${_IMPORT_PREFIX}/lib/libpndbotics_sdk2.a
+# Create imported target pndbotics_sdk
+add_library(pndbotics_sdk STATIC IMPORTED GLOBAL)
+set_target_properties(pndbotics_sdk PROPERTIES
+    IMPORTED_LOCATION ${_IMPORT_PREFIX}/lib/libpndbotics_sdk.a
     INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include;${_IMPORT_PREFIX}/include"
     INTERFACE_LINK_LIBRARIES "ddsc;ddscxx;Threads::Threads"
     LINKER_LANGUAGE CXX

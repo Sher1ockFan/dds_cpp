@@ -4,4 +4,4 @@ include(CMakeFindDependencyMacro)
 find_dependency(Threads REQUIRED)
 
 # Add the targets file
-include("${CMAKE_CURRENT_LIST_DIR}/pndbotics_sdk2Targets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/pndbotics_sdkTargets.cmake")

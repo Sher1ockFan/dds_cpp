@@ -21,5 +21,5 @@ target_include_directories(${LITE_ANKLE_SWING_TARGET}
 
 target_link_libraries(${LITE_ANKLE_SWING_TARGET}
     PRIVATE
-        pndbotics_sdk2
+        pndbotics_sdk
 )

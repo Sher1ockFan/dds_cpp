@@ -1,4 +1,4 @@
-# pndbotics_sdk2
+# pndbotics_sdk
 pndbotics robot sdk version 2.
 
 ### Prebuild environment
@@ -34,7 +34,7 @@ make
 
 ### Installation
 
-To build your own application with the SDK, you can install the pndbotics_sdk2 to your system directory:
+To build your own application with the SDK, you can install the pndbotics_sdk to your system directory:
 
 ```bash
 mkdir build
@@ -43,7 +43,7 @@ cmake ..
 sudo make install
 ```
 
-Or install pndbotics_sdk2 to a specified directory:
+Or install pndbotics_sdk to a specified directory:
 
 ```bash
 mkdir build
@@ -52,7 +52,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/opt/pndbotics_robotics
 sudo make install
 ```
 
-You can refer to `example/cmake_sample` on how to import the pndbotics_sdk2 into your CMake project. 
+You can refer to `example/cmake_sample` on how to import the pndbotics_sdk into your CMake project. 
 
 Note that if you install the library to other places other than `/opt/pndbotics_robotics`, you need to make sure the path is added to "${CMAKE_PREFIX_PATH}" so that cmake can find it with "find_package()".
 
