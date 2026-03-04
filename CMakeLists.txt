@@ -3,7 +3,7 @@ project(pndbotics_sdk VERSION 2.0.0)
 
 ## Project Options
 option(BUILD_EXAMPLES "Build examples" ON)
-option(USE_PREBUILT_pndbotics_SDK "Use prebuilt libpndbotics_sdk.a" OFF)
+option(USE_PREBUILT_pndbotics_SDK "Use prebuilt libpndbotics_sdk.a" ON)
 
 ## Set compiler to use c++ 17 features
 set(CMAKE_CXX_STANDARD 17)
@@ -79,6 +79,13 @@ else ()
         src/pndbotics/common/dds/dds_factory_model.cpp
         src/pndbotics/common/dds/dds_easy_model.cpp
         src/pndbotics/robot/channel/channel_factory.cpp
+        example/lite/src_idl/HandCmd_.cpp
+        example/lite/src_idl/HandState_.cpp
+        example/lite/src_idl/IMUState_.cpp
+        example/lite/src_idl/LowCmd_.cpp
+        example/lite/src_idl/LowState_.cpp
+        example/lite/src_idl/MotorCmd_.cpp
+        example/lite/src_idl/MotorState_.cpp
     )
 
     add_library(pndbotics_sdk STATIC ${pndbotics_sdk_SRC})
@@ -86,6 +93,8 @@ else ()
     target_include_directories(pndbotics_sdk PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>)
+    target_include_directories(pndbotics_sdk PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include/pndbotics/idl/pnd_adam)
 endif ()
 
 if (BUILD_EXAMPLES)
