@@ -3,8 +3,7 @@
 #include <mutex>
 #include <shared_mutex>
 
-#include "gamepad.hpp"
-
+// #include "gamepad.hpp"
 // DDS
 #include <pndbotics/robot/channel/channel_publisher.hpp>
 #include <pndbotics/robot/channel/channel_subscriber.hpp>
@@ -141,8 +140,6 @@ class LITEExample {
   Mode mode_pr_;
   uint8_t mode_machine_;
 
-  Gamepad gamepad_;
-  REMOTE_DATA_RX rx_;
 
   DataBuffer<MotorState> motor_state_buffer_;
   DataBuffer<MotorCommand> motor_command_buffer_;
@@ -196,22 +193,12 @@ class LITEExample {
     imu_tmp.ypr = low_state.imu_state().ypr();
     imu_state_buffer_.SetData(imu_tmp);
 
-    // update gamepad
-    memcpy(rx_.buff, &low_state.wireless_remote()[0], 40);
-    gamepad_.update(rx_.RF_RX);
-
     // report robot status every second
     if (++counter_ % 500 == 0) {
       counter_ = 0;
       // IMU
       auto &ypr = low_state.imu_state().gyroscope();
       printf("IMU.pelvis.ypr: %.2f %.2f %.2f\n", ypr[0], ypr[1], ypr[2]);
-
-      // RC
-      printf("gamepad_.A.pressed: %d\n", static_cast<int>(gamepad_.A.pressed));
-      printf("gamepad_.B.pressed: %d\n", static_cast<int>(gamepad_.B.pressed));
-      printf("gamepad_.X.pressed: %d\n", static_cast<int>(gamepad_.X.pressed));
-      printf("gamepad_.Y.pressed: %d\n", static_cast<int>(gamepad_.Y.pressed));
 
       // Motor
       auto &ms = low_state.motor_state();
